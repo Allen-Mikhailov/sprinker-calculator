@@ -2,7 +2,7 @@ body {
     background-color: black;
 }
 
-#screen {
+#sim-screen {
     /* width: 60%; */
     position: absolute;
     left: 50%;
