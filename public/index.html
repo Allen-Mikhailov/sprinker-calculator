@@ -9,9 +9,23 @@
 <body>
     <select id="visible-map-selector">
         <option value="simulation">simulation</option>
-        <option value="materials">materials</option>
+        <option value="material">material</option>
         <option value="sprinklers">sprinklers</option>
-      </select>
+    </select>
+    <span id="material-map">
+        <select id="material-tool">
+            <option value="0">grass</option>
+            <option value="1">concrete</option>
+            <option value="2">wall</option>
+        </select>
+        <select id="material-tool-size">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="20">20</option>
+        </select>
+      </span>
     <div id="fps-counter">0</div>
     <canvas id="sim-screen"></canvas>
     <script src="./js/index.js"></script>
