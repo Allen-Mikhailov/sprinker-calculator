@@ -17,10 +17,10 @@ let decorSize = 4
 let lineWidth = 1
 
 // Debug Settings
-// gridWidth = 10
-// gridHeight = 10
-// gridSize = 50
-// decorSize = 24
+gridWidth = 10
+gridHeight = 10
+gridSize = 50
+decorSize = 24
 
 let colorBufferSize
 
@@ -37,15 +37,16 @@ let map = "simulation"
 
 let brushSize = 1
 
-let needScreenUpdate = true
-
 let materialBuffer
 
 let simulationDisplayBuffer
 let materialDisplayBuffer
 let sprinklerDisplayBuffer
+let decorBuffer
 
 let decorationBuffer
+
+let sprinklers = []
 
 function getPixelPoint(x, y)
 {
@@ -67,6 +68,9 @@ function updateSize()
     colorBufferSize = gridWidth * gridHeight * 3
     simulationDisplayBuffer = new Uint8Array(colorBufferSize)
     materialDisplayBuffer = new Uint8Array(colorBufferSize)
+    sprinklerDisplayBuffer = new Uint8Array(colorBufferSize)
+
+    decorBuffer = new Uint8Array(gridHeight*gridWidth*4)
 
     materialBuffer = new Uint8Array(gridWidth * gridHeight)
 
@@ -148,40 +152,60 @@ function updateMaterialBuffer()
             materialDisplayBuffer[j++] = materialColors[mat][2]
         }
     }
-    needScreenUpdate = true
 }
 
 updateMaterialBuffer()
 
-function refreshScreen()
+function drawSprinkler(sprinkler)
 {
-    const startTick = Date.now()
+    ctx.fillStyle = "black"
+    ctx.beginPath();
+    ctx.arc(sprinkler.x, sprinkler.y, gridSize, 0, 2 * Math.PI);
+    ctx.fill();
+}   
 
-    let buffer = simulationDisplayBuffer
-    let decBuffer = new Uint8Array(gridHeight*gridWidth*4)
+function updateDecorBuffer()
+{
+    decorBuffer.fill(0)
 
-    switch(map)
+    switch (map)
     {
         case "simulation":
-            buffer = simulationDisplayBuffer
             let mousePoint = (mgX + mgY*gridWidth)*4
-            // decBuffer[mousePoint+3] = 255
-            // decBuffer[mousePoint+2] = 0
-            // decBuffer[mousePoint+1] = 0
-            // decBuffer[mousePoint+0] = 0
+            decorBuffer[mousePoint+3] = 255
             break;
         case "material":
-            buffer = materialDisplayBuffer
             if (mWithinBounds)
             {
-                applyBrush(decBuffer, mgX, mgY, [gridWidth, gridHeight], {
+                applyBrush(decorBuffer, mgX, mgY, [gridWidth, gridHeight], {
                     "size": brushSize,
                     "spacing": 4,
                     "data": [0, 0, 0, 255]
                 })
             }
             break;
+    }
+}
 
+updateDecorBuffer()
+
+function refreshScreen()
+{
+    const startTick = Date.now()
+
+    let buffer = simulationDisplayBuffer
+
+    switch(map)
+    {
+        case "simulation":
+            buffer = simulationDisplayBuffer
+            break;
+        case "material":
+            buffer = materialDisplayBuffer
+            break;
+        case "sprinklers":
+            buffer = sprinklerDisplayBuffer
+            break
         default:
             buffer = simulationDisplayBuffer
     }
@@ -195,10 +219,23 @@ function refreshScreen()
         ctx.fillRect(0, d, SCREEN_WIDTH, lineWidth)
     }
 
-    if (needScreenUpdate)
-        drawScreen(buffer, decBuffer)
+    drawScreen(buffer, decorBuffer)
 
-        needScreenUpdate = false
+    switch(map)
+    {
+        case "simulation":
+            
+            break
+        case "material":
+            
+            break;
+
+        case "sprinklers":
+            sprinklers.map((sprinkler) => {
+                drawSprinkler(sprinkler)
+            })
+            break;
+    }
 
     fpsCounter.innerHTML = Date.now()-startTick
 
@@ -208,7 +245,6 @@ function refreshScreen()
 function mapUpdate()
 {
     materialMap.style.visibility = map == "material" ? "visible":"hidden"
-    needScreenUpdate = true
 }
 
 mapUpdate()
@@ -234,7 +270,7 @@ document.body.onmousemove = (e) => {
     if (mgX != gx || mgY != gy)
     {
         mgX = gx; mgY = gy;
-        needScreenUpdate = true
+        updateDecorBuffer()
     }
 }
 
@@ -251,8 +287,10 @@ document.body.onclick = () => {
             })
             updateMaterialBuffer()
             break
+        case "sprinklers":
+            
     }
 }
 
-materialToolSize.onchange = () => {brushSize = parseInt(materialToolSize.value); needScreenUpdate = true}
+materialToolSize.onchange = () => {brushSize = parseInt(materialToolSize.value);}
 visibleMapSelector.onchange = () => {map = visibleMapSelector.value; mapUpdate();}
