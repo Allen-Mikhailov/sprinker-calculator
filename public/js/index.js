@@ -24,6 +24,9 @@ let lineWidth = 1
 
 let colorBufferSize
 
+let SCREEN_WIDTH
+let SCREEN_HEIGHT
+
 let mX = 0
 let mY = 0
 let mgX = 0
@@ -34,8 +37,7 @@ let map = "simulation"
 
 let brushSize = 1
 
-let needGridUpdate
-let needDecorUpdate
+let needScreenUpdate = true
 
 let materialBuffer
 
@@ -52,6 +54,16 @@ function getPixelPoint(x, y)
 
 function updateSize()
 {
+    SCREEN_WIDTH = lineWidth*(gridWidth+1) + gridSize*gridWidth
+    SCREEN_HEIGHT = lineWidth*(gridHeight+1) + gridSize*gridHeight
+
+    simScreen.width = SCREEN_WIDTH
+    simScreen.height = SCREEN_HEIGHT+1
+
+    simScreen.style.width = `${SCREEN_WIDTH}px`
+    simScreen.style.height = `${SCREEN_HEIGHT+1}px`
+
+
     colorBufferSize = gridWidth * gridHeight * 3
     simulationDisplayBuffer = new Uint8Array(colorBufferSize)
     materialDisplayBuffer = new Uint8Array(colorBufferSize)
@@ -75,42 +87,30 @@ function updateSize()
 
 updateSize()
 
-function drawGrid(buffer)
+function drawScreen(buffer, decBuffer)
 {
     let i = 0;
+    let j = 0;
     for (let y = 0; y < gridHeight; y++)
         {  
             const ay = lineWidth + y*gridSize + (y)*lineWidth
+            const ady = ay+(gridSize-decorSize)/2
             for (let x = 0; x < gridWidth; x++)
             {
                 const ax = lineWidth + x*gridSize + (x)*lineWidth
+                const adx = ax+(gridSize-decorSize)/2
 
                 // Main Grid
                 ctx.fillStyle = `rgb(${buffer[i+0]},${buffer[i+1]},${buffer[i+2]})`
                 ctx.fillRect(ax, ay, gridSize, gridSize)
                 i += 3
+
+                // Decor Grid
+                ctx.fillStyle = `rgba(${decBuffer[j+0]},${decBuffer[j+1]},${decBuffer[j+2]}, ${decBuffer[j+3]})`
+                ctx.fillRect(adx, ady, decorSize, decorSize)
+                j += 4
             }
         }
-}
-
-function drawDecor(buffer)
-{
-    let i = 0;
-    for (let y = 0; y < gridHeight; y++)
-    {  
-        const ay = lineWidth + y*gridSize + (y)*lineWidth
-        const ady = ay+(gridSize-decorSize)/2
-        for (let x = 0; x < gridWidth; x++)
-        {
-            const ax = lineWidth + x*gridSize + (x)*lineWidth
-            const adx = ax+(gridSize-decorSize)/2
-
-            // Decor Grid
-            ctx.fillStyle = `rgba(${buffer[i+0]},${buffer[i+1]},${buffer[i+2]}, ${buffer[i+3]})`
-            ctx.fillRect(adx, ady, decorSize, decorSize)
-            i += 4
-        }
-    }
 }
 
 function applyBrush(buffer, x, y, size, bs)
@@ -148,6 +148,7 @@ function updateMaterialBuffer()
             materialDisplayBuffer[j++] = materialColors[mat][2]
         }
     }
+    needScreenUpdate = true
 }
 
 updateMaterialBuffer()
@@ -155,21 +156,9 @@ updateMaterialBuffer()
 function refreshScreen()
 {
     const startTick = Date.now()
-    const SCREEN_WIDTH = lineWidth*(gridWidth+1) + gridSize*gridWidth
-    const SCREEN_HEIGHT = lineWidth*(gridHeight+1) + gridSize*gridHeight
 
-    simScreen.width = SCREEN_WIDTH
-    simScreen.height = SCREEN_HEIGHT+1
-
-    simScreen.style.width = `${SCREEN_WIDTH}px`
-    simScreen.style.height = `${SCREEN_HEIGHT+1}px`
-
-    let buffer
+    let buffer = simulationDisplayBuffer
     let decBuffer = new Uint8Array(gridHeight*gridWidth*4)
-
-    // temp: 
-    needGridUpdate = true
-    needDecorUpdate = true
 
     switch(map)
     {
@@ -206,14 +195,10 @@ function refreshScreen()
         ctx.fillRect(0, d, SCREEN_WIDTH, lineWidth)
     }
 
-    if (needGridUpdate)
-        drawGrid(buffer)
+    if (needScreenUpdate)
+        drawScreen(buffer, decBuffer)
 
-    if (needGridUpdate || needDecorUpdate)
-        drawDecor(decBuffer)
-
-    needGridUpdate = false
-    needDecorUpdate = false
+        needScreenUpdate = false
 
     fpsCounter.innerHTML = Date.now()-startTick
 
@@ -223,6 +208,7 @@ function refreshScreen()
 function mapUpdate()
 {
     materialMap.style.visibility = map == "material" ? "visible":"hidden"
+    needScreenUpdate = true
 }
 
 mapUpdate()
@@ -235,7 +221,6 @@ function clamp(value, min, max)
 }
 
 document.body.onmousemove = (e) => {
-    // console.log("Move")
     let rect = simScreen.getBoundingClientRect()
 
     mX = (e.clientX-rect.left)/rect.width
@@ -249,6 +234,7 @@ document.body.onmousemove = (e) => {
     if (mgX != gx || mgY != gy)
     {
         mgX = gx; mgY = gy;
+        needScreenUpdate = true
     }
 }
 
@@ -258,7 +244,6 @@ document.body.onclick = () => {
     switch (map)
     {
         case "material":
-            console.log("Click")
             applyBrush(materialBuffer, mgX, mgY, [gridWidth, gridHeight], {
                 "size": brushSize,
                 "data": [parseInt(materialToolSelect.value)],
@@ -269,5 +254,5 @@ document.body.onclick = () => {
     }
 }
 
-materialToolSize.onchange = () => {brushSize = parseInt(materialToolSize.value)}
+materialToolSize.onchange = () => {brushSize = parseInt(materialToolSize.value); needScreenUpdate = true}
 visibleMapSelector.onchange = () => {map = visibleMapSelector.value; mapUpdate();}
