@@ -7,6 +7,7 @@ const visibleMapSelector = document.getElementById("visible-map-selector")
 // Material Stuff
 const materialMap = document.getElementById("material-map")
 const materialToolSize = document.getElementById("material-tool-size")
+const materialToolSelect = document.getElementById("material-tool")
 
 let gridWidth = 75
 let gridHeight = 45
@@ -16,10 +17,10 @@ let decorSize = 4
 let lineWidth = 1
 
 // Debug Settings
-gridWidth = 10
-gridHeight = 10
-gridSize = 50
-decorSize = 24
+// gridWidth = 10
+// gridHeight = 10
+// gridSize = 50
+// decorSize = 24
 
 let colorBufferSize
 
@@ -27,6 +28,7 @@ let mX = 0
 let mY = 0
 let mgX = 0
 let mgY = 0
+let mWithinBounds = false
 
 let map = "simulation"
 
@@ -181,11 +183,14 @@ function refreshScreen()
             break;
         case "material":
             buffer = materialDisplayBuffer
-            applyBrush(decBuffer, mgX, mgY, [gridWidth, gridHeight], {
-                "size": brushSize,
-                "spacing": 4,
-                "data": [0, 0, 0, 255]
-            })
+            if (mWithinBounds)
+            {
+                applyBrush(decBuffer, mgX, mgY, [gridWidth, gridHeight], {
+                    "size": brushSize,
+                    "spacing": 4,
+                    "data": [0, 0, 0, 255]
+                })
+            }
             break;
 
         default:
@@ -209,9 +214,6 @@ function refreshScreen()
 
     needGridUpdate = false
     needDecorUpdate = false
-
-    let i = 0;
-    let j = 0;
 
     fpsCounter.innerHTML = Date.now()-startTick
 
@@ -239,6 +241,8 @@ document.body.onmousemove = (e) => {
     mX = (e.clientX-rect.left)/rect.width
     mY = (e.clientY-rect.top)/rect.height
 
+    mWithinBounds = mX >= 0 && mX <= 1 && mY >= 0 && mY <= 1
+
     let gx = clamp(Math.floor(mX*(gridWidth)), 0, gridWidth-1)
     let gy = clamp(Math.floor(mY*(gridHeight)), 0, gridHeight-1)
 
@@ -247,5 +251,23 @@ document.body.onmousemove = (e) => {
         mgX = gx; mgY = gy;
     }
 }
+
+document.body.onclick = () => {
+    if (!mWithinBounds) return 
+
+    switch (map)
+    {
+        case "material":
+            console.log("Click")
+            applyBrush(materialBuffer, mgX, mgY, [gridWidth, gridHeight], {
+                "size": brushSize,
+                "data": [parseInt(materialToolSelect.value)],
+                "spacing": 1
+            })
+            updateMaterialBuffer()
+            break
+    }
+}
+
 materialToolSize.onchange = () => {brushSize = parseInt(materialToolSize.value)}
 visibleMapSelector.onchange = () => {map = visibleMapSelector.value; mapUpdate();}
