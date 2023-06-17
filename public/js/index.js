@@ -4,6 +4,10 @@ const ctx = simScreen.getContext("2d");
 const fpsCounter = document.getElementById("fps-counter")
 const visibleMapSelector = document.getElementById("visible-map-selector")
 
+// Simulation Stuff
+const simulationTool = document.getElementById("simulation-tool")
+const simulationRunButton = document.getElementById("simulation-run-button")
+
 // Material Stuff
 const materialMap = document.getElementById("material-map")
 const materialToolSize = document.getElementById("material-tool-size")
@@ -17,10 +21,10 @@ let decorSize = 4
 let lineWidth = 1
 
 // Debug Settings
-gridWidth = 10
-gridHeight = 10
-gridSize = 50
-decorSize = 24
+// gridWidth = 10
+// gridHeight = 10
+// gridSize = 50
+// decorSize = 24
 
 let colorBufferSize
 
@@ -37,6 +41,7 @@ let map = "simulation"
 
 let brushSize = 1
 
+let simulationBuffer
 let materialBuffer
 
 let simulationDisplayBuffer
@@ -47,6 +52,15 @@ let decorBuffer
 let decorationBuffer
 
 let sprinklers = []
+
+let ghostSprinkler
+
+const sprinklerTypes = {
+    "test": {
+        "angle": Math.PI/8,
+        "distance": 10
+    }
+}
 
 function getPixelPoint(x, y)
 {
@@ -73,6 +87,7 @@ function updateSize()
     decorBuffer = new Uint8Array(gridHeight*gridWidth*4)
 
     materialBuffer = new Uint8Array(gridWidth * gridHeight)
+    simulationBuffer = new Float64Array(gridWidth * gridHeight)
 
     // Draw Test
     const c = Math.hypot(gridWidth, gridHeight)
@@ -87,6 +102,8 @@ function updateSize()
             simulationDisplayBuffer[i++] = (1-disAlpha)*255
         }
     }
+
+    sprinklerDisplayBuffer.fill(255)
 }
 
 updateSize()
@@ -158,10 +175,34 @@ updateMaterialBuffer()
 
 function drawSprinkler(sprinkler)
 {
+    const x = sprinkler.x*SCREEN_WIDTH
+    const y = sprinkler.y*SCREEN_HEIGHT
+
+    const sprinkerD = sprinklerTypes[sprinkler.type]
+
     ctx.fillStyle = "black"
     ctx.beginPath();
-    ctx.arc(sprinkler.x, sprinkler.y, gridSize, 0, 2 * Math.PI);
+    ctx.arc(x, y, gridSize/2, 0, 2 * Math.PI);
     ctx.fill();
+
+    const lAngle = sprinkler.angle + sprinkerD.angle/2
+    const rAngle = sprinkler.angle - sprinkerD.angle/2
+
+    ctx.beginPath(); 
+    ctx.moveTo(x, y);
+    ctx.lineTo(
+        x + Math.cos(lAngle)*sprinkerD.distance*gridSize, 
+        y + Math.sin(lAngle)*sprinkerD.distance*gridSize
+        );
+    ctx.stroke();
+
+    ctx.beginPath(); 
+    ctx.moveTo(x, y);
+    ctx.lineTo(
+        x + Math.cos(rAngle)*sprinkerD.distance*gridSize, 
+        y + Math.sin(rAngle)*sprinkerD.distance*gridSize
+        );
+    ctx.stroke();
 }   
 
 function updateDecorBuffer()
@@ -204,7 +245,7 @@ function refreshScreen()
             buffer = materialDisplayBuffer
             break;
         case "sprinklers":
-            buffer = sprinklerDisplayBuffer
+            buffer = materialDisplayBuffer
             break
         default:
             buffer = simulationDisplayBuffer
@@ -224,13 +265,23 @@ function refreshScreen()
     switch(map)
     {
         case "simulation":
-            
+            sprinklers.map((sprinkler) => {
+                drawSprinkler(sprinkler)
+            })
             break
         case "material":
             
             break;
 
         case "sprinklers":
+
+            // Ghost Sprinkler
+            if (ghostSprinkler)
+            {
+                ghostSprinkler.angle = Math.atan2(mY-ghostSprinkler.y, mX-ghostSprinkler.x)
+                drawSprinkler(ghostSprinkler)
+            }
+            
             sprinklers.map((sprinkler) => {
                 drawSprinkler(sprinkler)
             })
@@ -244,7 +295,9 @@ function refreshScreen()
 
 function mapUpdate()
 {
-    materialMap.style.visibility = map == "material" ? "visible":"hidden"
+    materialMap.style.display = map == "material" ? "inline-block":"none"
+    simulationTool.style.display = map == "simulation" ? "inline-block":"none"
+    updateDecorBuffer()
 }
 
 mapUpdate()
@@ -288,7 +341,17 @@ document.body.onclick = () => {
             updateMaterialBuffer()
             break
         case "sprinklers":
-            
+            if (ghostSprinkler)
+            {
+                sprinklers.push(ghostSprinkler)
+                ghostSprinkler = null
+            } else {
+                ghostSprinkler = {
+                    "type": "test",
+                    "x": mX,
+                    "y": mY,
+                }
+            }
     }
 }
 
