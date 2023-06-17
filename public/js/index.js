@@ -7,6 +7,7 @@ const visibleMapSelector = document.getElementById("visible-map-selector")
 // Simulation Stuff
 const simulationTool = document.getElementById("simulation-tool")
 const simulationRunButton = document.getElementById("simulation-run-button")
+const simulationToggleSprinklersButton = document.getElementById("simulation-toggle-sprinklers-button")
 
 // Material Stuff
 const materialMap = document.getElementById("material-map")
@@ -25,6 +26,8 @@ let lineWidth = 1
 // gridHeight = 10
 // gridSize = 50
 // decorSize = 24
+
+let gridConversion
 
 let colorBufferSize
 
@@ -55,10 +58,12 @@ let sprinklers = []
 
 let ghostSprinkler
 
+let simToggleSprinklers = true
+
 const sprinklerTypes = {
     "test": {
         "angle": Math.PI/8,
-        "distance": 10
+        "distance": 30
     }
 }
 
@@ -77,6 +82,8 @@ function updateSize()
 
     simScreen.style.width = `${SCREEN_WIDTH}px`
     simScreen.style.height = `${SCREEN_HEIGHT+1}px`
+
+    gridConversion = SCREEN_WIDTH/gridWidth
 
 
     colorBufferSize = gridWidth * gridHeight * 3
@@ -173,34 +180,86 @@ function updateMaterialBuffer()
 
 updateMaterialBuffer()
 
+function withinAngle(p0x, p0y, p1x, p1y, angle, dif)
+{
+    return Math.abs(Math.atan2(p1y-p0y, p1x-p0x)-angle)<=dif
+}
+
+function sprinklerCoverPoint(x, y, sprinkler)
+{
+    return withinAngle(sprinkler.x, sprinkler.y, x, y, sprinkler.angle, sprinklerTypes[sprinkler.type].angle) &&
+        Math.hypot((sprinkler.x-x), sprinkler.y - y) <= sprinklerTypes[sprinkler.type].distance
+}
+
+function simulateSprinklers()
+{
+    simulationBuffer.fill(0)
+
+    let i = 0
+    let j = 0;
+    for (let y = 0; y < gridHeight; y++)
+    {
+        for (let x = 0; x < gridWidth; x++)
+        {
+            if (materialBuffer[i] != 0)
+            {
+                // Isnt grass
+            }
+
+
+            let value = 0
+
+            sprinklers.map((sprinkler) => {
+
+                let validVert = 0
+
+                validVert += sprinklerCoverPoint(x, y,     sprinkler) ? 1:0
+                validVert += sprinklerCoverPoint(x, y+1,   sprinkler) ? 1:0
+                validVert += sprinklerCoverPoint(x+1, y+1, sprinkler) ? 1:0
+                validVert += sprinklerCoverPoint(x+1, y+1, sprinkler) ? 1:0
+                
+                value += validVert/4 * .25
+            })
+
+            simulationBuffer[i++] = value;
+
+            simulationDisplayBuffer[j++] = 70
+            simulationDisplayBuffer[j++] = 70+clamp(value*(255-70), 0, 255-70)
+            simulationDisplayBuffer[j++] = 70
+
+        }
+    }
+
+}
+
 function drawSprinkler(sprinkler)
 {
-    const x = sprinkler.x*SCREEN_WIDTH
-    const y = sprinkler.y*SCREEN_HEIGHT
+    const x = sprinkler.x*gridConversion
+    const y = sprinkler.y*gridConversion
 
     const sprinkerD = sprinklerTypes[sprinkler.type]
 
     ctx.fillStyle = "black"
     ctx.beginPath();
-    ctx.arc(x, y, gridSize/2, 0, 2 * Math.PI);
+    ctx.arc(x, y, gridConversion/2, 0, 2 * Math.PI);
     ctx.fill();
 
-    const lAngle = sprinkler.angle + sprinkerD.angle/2
-    const rAngle = sprinkler.angle - sprinkerD.angle/2
+    const lAngle = sprinkler.angle + sprinkerD.angle
+    const rAngle = sprinkler.angle - sprinkerD.angle
 
     ctx.beginPath(); 
     ctx.moveTo(x, y);
     ctx.lineTo(
-        x + Math.cos(lAngle)*sprinkerD.distance*gridSize, 
-        y + Math.sin(lAngle)*sprinkerD.distance*gridSize
+        x + Math.cos(lAngle)*sprinkerD.distance*gridConversion, 
+        y + Math.sin(lAngle)*sprinkerD.distance*gridConversion
         );
     ctx.stroke();
 
     ctx.beginPath(); 
     ctx.moveTo(x, y);
     ctx.lineTo(
-        x + Math.cos(rAngle)*sprinkerD.distance*gridSize, 
-        y + Math.sin(rAngle)*sprinkerD.distance*gridSize
+        x + Math.cos(rAngle)*sprinkerD.distance*gridConversion, 
+        y + Math.sin(rAngle)*sprinkerD.distance*gridConversion
         );
     ctx.stroke();
 }   
@@ -265,9 +324,12 @@ function refreshScreen()
     switch(map)
     {
         case "simulation":
-            sprinklers.map((sprinkler) => {
-                drawSprinkler(sprinkler)
-            })
+            if (simToggleSprinklers)
+            {
+                sprinklers.map((sprinkler) => {
+                    drawSprinkler(sprinkler)
+                })
+            }
             break
         case "material":
             
@@ -312,13 +374,15 @@ function clamp(value, min, max)
 document.body.onmousemove = (e) => {
     let rect = simScreen.getBoundingClientRect()
 
-    mX = (e.clientX-rect.left)/rect.width
-    mY = (e.clientY-rect.top)/rect.height
+    mX = (e.clientX-rect.left)/rect.width * gridWidth
+    mY = (e.clientY-rect.top)/rect.height * gridHeight
 
-    mWithinBounds = mX >= 0 && mX <= 1 && mY >= 0 && mY <= 1
+    console.log(mX, mY)
 
-    let gx = clamp(Math.floor(mX*(gridWidth)), 0, gridWidth-1)
-    let gy = clamp(Math.floor(mY*(gridHeight)), 0, gridHeight-1)
+    mWithinBounds = mX >= 0 && mX <= gridWidth && mY >= 0 && mY <= gridHeight
+
+    let gx = clamp(Math.floor(mX), 0, gridWidth-1)
+    let gy = clamp(Math.floor(mY), 0, gridHeight-1)
 
     if (mgX != gx || mgY != gy)
     {
@@ -355,5 +419,8 @@ document.body.onclick = () => {
     }
 }
 
+simulationRunButton.onclick = simulateSprinklers
+
 materialToolSize.onchange = () => {brushSize = parseInt(materialToolSize.value);}
 visibleMapSelector.onchange = () => {map = visibleMapSelector.value; mapUpdate();}
+simulationToggleSprinklersButton.onclick = () => {simToggleSprinklers = !simToggleSprinklers}
