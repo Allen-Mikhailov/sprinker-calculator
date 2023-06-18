@@ -77,6 +77,27 @@ const sprinklerTypes = {
     }
 }
 
+// Math functions
+const sin = Math.sin
+const cos = Math.cos
+const abs = Math.abs
+const atan2 = Math.atan2
+const min = Math.min
+const max = Math.max
+const hypot = Math.hypot
+const PI2 = Math.PI*2
+
+function clamp(value, mi, ma)
+{return max(min(value, ma), mi);}
+
+function convertToABC(x, y, a)
+{return -sin(a), cos(a), sin(a)*x - cos(a)*y;}
+
+function angleDif(a0, a1)
+{return mod(a0-a1 + Math.PI, PI2) -  Math.PI;}
+
+mod = (a, n) => {return a - Math.floor(a/n) * n}
+
 function getPixelPoint(x, y)
 {
     return (y*gridWidth+x)*3
@@ -107,13 +128,13 @@ function updateSize()
     simulationBuffer = new Float64Array(gridWidth * gridHeight)
 
     // Draw Test
-    const c = Math.hypot(gridWidth, gridHeight)
+    const c = hypot(gridWidth, gridHeight)
     let i = 0
     for (let y = 0; y < gridHeight; y++)
     {  
         for (let x = 0; x < gridWidth; x++)
         {
-            const disAlpha = Math.hypot(x, y)/c
+            const disAlpha = hypot(x, y)/c
             simulationDisplayBuffer[i++] = (1-disAlpha)*255
             simulationDisplayBuffer[i++] = 255
             simulationDisplayBuffer[i++] = (1-disAlpha)*255
@@ -199,8 +220,6 @@ function updateMaterialBuffer()
 
 updateMaterialBuffer()
 
-const PI2 = Math.PI*2
-
 function posAngle(angle)
 {
     return (angle+PI2)%PI2
@@ -218,21 +237,14 @@ function sprinklerToPoint(x, y, sprinkler)
         && Math.hypot((sprinkler.x-walls[i]), sprinkler.y - y) <= sprinklerTypes[sprinkler.type].distance
 }
 
-mod = (a, n) => {return a - Math.floor(a/n) * n}
-
-function angleDif(a0, a1)
-{
-    return mod(a0-a1 + Math.PI, PI2) -  Math.PI
-}
-
 function getTileAngle(tx, ty, sx, sy)
 {
-    const TL = posAngle(Math.atan2(ty-sy, tx-sx))
-    const TR = posAngle(Math.atan2(ty-sy, tx+1-sx))
-    const BL = posAngle(Math.atan2(ty+1-sy, tx-sx))
-    const BR = posAngle(Math.atan2(ty+1-sy, tx+1-sx))
+    const TL = posAngle(atan2(ty-sy, tx-sx))
+    const TR = posAngle(atan2(ty-sy, tx+1-sx))
+    const BL = posAngle(atan2(ty+1-sy, tx-sx))
+    const BR = posAngle(atan2(ty+1-sy, tx+1-sx))
 
-    return [Math.min(TL,TR,BL,BR), Math.max(TL,TR,BL,BR)]
+    return [min(TL,TR,BL,BR), max(TL,TR,BL,BR)]
 }
 
 function sprinklerCoverPoint(x, y, sprinkler)
@@ -463,11 +475,6 @@ function mapUpdate()
 mapUpdate()
 
 refreshScreen()
-
-function clamp(value, min, max)
-{
-    return Math.max(Math.min(value, max), min)
-}
 
 document.body.onmousemove = (e) => {
     let rect = simScreen.getBoundingClientRect()
