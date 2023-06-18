@@ -87,16 +87,25 @@ const max = Math.max
 const hypot = Math.hypot
 const PI2 = Math.PI*2
 
+const floor = Math.floor
+
 function clamp(value, mi, ma)
 {return max(min(value, ma), mi);}
 
 function convertToABC(x, y, a)
-{return -sin(a), cos(a), sin(a)*x - cos(a)*y;}
+{return [-sin(a), cos(a), sin(a)*x - cos(a)*y];}
 
 function angleDif(a0, a1)
 {return mod(a0-a1 + Math.PI, PI2) -  Math.PI;}
 
 mod = (a, n) => {return a - Math.floor(a/n) * n}
+
+function lineIntersect(a1,b1,c1,a2,b2,c2)
+{
+    const x = (b1*c2-b2*c1)/(a1*b2-a2*b1)
+    const y = (a2*c1-a1*c2)/(a1*b2-a2*b1)
+    return [x, y]
+}
 
 function getPixelPoint(x, y)
 {
@@ -174,9 +183,9 @@ function drawScreen(buffer, decBuffer)
 
 function applyBrush(buffer, x, y, size, bs)
 {
-    for (let ax = Math.max(x-bs.size+1, 0); ax < x+bs.size && ax < size[0]; ax++)
+    for (let ax = max(x-bs.size+1, 0); ax < x+bs.size && ax < size[0]; ax++)
     {
-        for (let ay = Math.max(y-bs.size+1, 0); ay < y+bs.size  && ay < size[1]; ay++)
+        for (let ay = max(y-bs.size+1, 0); ay < y+bs.size  && ay < size[1]; ay++)
         {
             let pxPoint = (size[0]*ay + ax)*bs.spacing
             for (let i = 0; i < bs.data.length; i++)
@@ -227,7 +236,7 @@ function posAngle(angle)
 
 function withinAngle(p0x, p0y, p1x, p1y, angle, dif)
 {
-    const d = Math.abs(Math.atan2(p1y-p0y, p1x-p0x)-angle)
+    const d = abs(atan2(p1y-p0y, p1x-p0x)-angle)
     return d<=dif || PI2 - d <=dif
 }
 
@@ -247,12 +256,34 @@ function getTileAngle(tx, ty, sx, sy)
     return [min(TL,TR,BL,BR), max(TL,TR,BL,BR)]
 }
 
+function squareIntersect(a, b, c, x, y)
+{
+    const [ta,tb,tc] = convertToABC(x,y,0)
+    const [ba,bb,bc] = convertToABC(x,y+1,0)
+    const [la,lb,lc] = convertToABC(x,y,Math.PI/2)
+    const [ra,rb,rc] = convertToABC(x+1,y,Math.PI/2)
+
+    const [tx, ty] = lineIntersect(a,b,c,ta,tb,tc)
+    const [bx, by] = lineIntersect(a,b,c,ba,bb,bc)
+    const [lx, ly] = lineIntersect(a,b,c,la,lb,lc)
+    const [rx, ry] = lineIntersect(a,b,c,ra,rb,rc)
+
+    return !(
+        (!isNaN(tx) && !isNaN(ty) && tx >= x && tx <= x+1) ||
+        (!isNaN(bx) && !isNaN(by) && bx >= x && bx <= x+1) ||
+        (!isNaN(lx) && !isNaN(ly) && ly >= y && ly <= y+1) ||
+        (!isNaN(rx) && !isNaN(ry) && ry >= y && ry <= y+1)
+    )
+}
+
 function sprinklerCoverPoint(x, y, sprinkler)
 {
     const distance = Math.hypot(sprinkler.x-x, sprinkler.y - y)
     const angleTo = posAngle(Math.atan2(y - sprinkler.y, x - sprinkler.x))
     const sprinklerAngle = sprinklerTypes[sprinkler.type].angle
     const sprinklerDistance = sprinklerTypes[sprinkler.type].distance
+
+    const [a,b,c] = convertToABC(x,y,angleTo)
 
     if (!withinAngle(sprinkler.x, sprinkler.y, x, y, sprinkler.angle, sprinklerAngle))
         return false
@@ -266,10 +297,10 @@ function sprinklerCoverPoint(x, y, sprinkler)
     {
         if (distance > Math.hypot((walls[i]+.5)-sprinkler.x, (walls[i+1]+.5)-sprinkler.y))
         {
-            const angles = getTileAngle(walls[i], walls[i+1], sprinkler.x, sprinkler.y)
-            const dif = angleDif(angles[0], angles[1])
-            if (angleDif(angles[0], angleTo) <= dif && angleDif(angles[1], angleTo) <= dif)
-                return false
+            if (squareIntersect(a,b,c, walls[i], walls[i+1]))
+            {
+
+            }
         }
         i += 2
     }
@@ -453,7 +484,7 @@ function refreshScreen()
             // Ghost Sprinkler
             if (ghostSprinkler)
             {
-                ghostSprinkler.angle = Math.atan2(mY-ghostSprinkler.y, mX-ghostSprinkler.x)
+                ghostSprinkler.angle = atan2(mY-ghostSprinkler.y, mX-ghostSprinkler.x)
                 drawSprinkler(ghostSprinkler)
             }
             break;
@@ -486,8 +517,8 @@ document.body.onmousemove = (e) => {
 
     mWithinBounds = mX >= 0 && mX <= gridWidth && mY >= 0 && mY <= gridHeight
 
-    let gx = clamp(Math.floor(mX), 0, gridWidth-1)
-    let gy = clamp(Math.floor(mY), 0, gridHeight-1)
+    let gx = clamp(floor(mX), 0, gridWidth-1)
+    let gy = clamp(floor(mY), 0, gridHeight-1)
 
     if (mgX != gx || mgY != gy)
     {
