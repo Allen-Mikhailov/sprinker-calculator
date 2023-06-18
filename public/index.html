@@ -14,7 +14,6 @@
     </select>
     <span id="simulation-tool">
         <button id="simulation-run-button">Run</button>
-        <button id="simulation-toggle-sprinklers-button">Toggle Sprinklers</button>
     </span>
     <span id="material-map">
         <select id="material-tool">
@@ -29,7 +28,14 @@
             <option value="10">10</option>
             <option value="20">20</option>
         </select>
-      </span>
+    </span>
+    <span id="sprinkler-tool">
+        <select id="sprinkler-tool-select">
+            <option value="test">test</option>
+            <option value="360">360</option>
+        </select>
+    </span>
+    <button id="simulation-toggle-sprinklers-button">Toggle Sprinklers</button>
     <div id="fps-counter">0</div>
     <canvas id="sim-screen"></canvas>
     <script src="./js/index.js"></script>
