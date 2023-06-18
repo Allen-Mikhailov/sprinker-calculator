@@ -297,7 +297,8 @@ function sprinklerCoverPoint(x, y, sprinkler)
     {
         if (distance > Math.hypot((walls[i*2]+.5)-sprinkler.x, (walls[i*2+1]+.5)-sprinkler.y))
         {
-            if (squareIntersect(a,b,c, walls[i*2], walls[i*2+1]))
+            const angleT = atan2(walls[i*2+1]+.5-sprinkler.y, (walls[i*2]+.5)-sprinkler.x)
+            if (abs(angleDif(angleT, angleTo)) < Math.PI/2 && squareIntersect(a,b,c, walls[i*2], walls[i*2+1]))
             {
                 return false
             }
@@ -342,6 +343,17 @@ function simulateSprinklers(sprinklers, buffer)
             buffer[i++] = value;
         }
     }
+}
+
+function evaluateSim(buffer)
+{
+    let covered = 0
+    const len = gridWidth*gridHeight
+    for (let i = 0; i < len; i++)
+    {
+        covered += buffer[i] > 0 ? 1:0
+    }
+    return covered/len
 }
 
 function updateSimDisplay(buffer)
