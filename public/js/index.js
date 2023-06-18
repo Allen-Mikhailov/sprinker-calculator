@@ -268,7 +268,7 @@ function squareIntersect(a, b, c, x, y)
     const [lx, ly] = lineIntersect(a,b,c,la,lb,lc)
     const [rx, ry] = lineIntersect(a,b,c,ra,rb,rc)
 
-    return !(
+    return (
         (!isNaN(tx) && !isNaN(ty) && tx >= x && tx <= x+1) ||
         (!isNaN(bx) && !isNaN(by) && bx >= x && bx <= x+1) ||
         (!isNaN(lx) && !isNaN(ly) && ly >= y && ly <= y+1) ||
@@ -295,14 +295,14 @@ function sprinklerCoverPoint(x, y, sprinkler)
     let i = 0
     while (i<len)
     {
-        if (distance > Math.hypot((walls[i]+.5)-sprinkler.x, (walls[i+1]+.5)-sprinkler.y))
+        if (distance > Math.hypot((walls[i*2]+.5)-sprinkler.x, (walls[i*2+1]+.5)-sprinkler.y))
         {
-            if (squareIntersect(a,b,c, walls[i], walls[i+1]))
+            if (squareIntersect(a,b,c, walls[i*2], walls[i*2+1]))
             {
-
+                return false
             }
         }
-        i += 2
+        i++;
     }
     
     return true
