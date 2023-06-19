@@ -35,14 +35,30 @@
             <option value="360">360</option>
         </select>
     </span>
+
     <div id="sprinkler-set">
         <button id="simulation-toggle-sprinklers-button">Toggle Sprinklers</button>
     </div>
+
     <div id="sim-stats">
         <div id="sim-stats-"></div>
     </div>
-    <div id="fps-counter">0</div>
-    <canvas id="sim-screen"></canvas>
+
+    <div id="canvas-spacer" class="screen"></div>
+
+    <canvas id="simulation-display" class="screen"></canvas>
+    <canvas id="material-display"   class="screen"></canvas>
+
+    <canvas id="brush-display"      class="screen"></canvas>
+    <canvas id="sprinkler-display"  class="screen"></canvas>
+
+    <script src="./js/data.js"></script>
+    <script src="./js/state.js"></script>
+    <script src="./js/math-stuff.js"></script>
+
+    <script src="./js/drawing.js"></script>
+    <script src="./js/simulate.js"></script>
+
     <script src="./js/index.js"></script>
 </body>
 </html>
