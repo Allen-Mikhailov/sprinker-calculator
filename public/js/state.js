@@ -7,7 +7,7 @@ let lineWidth = 1
 
 // Debug Settings
 // gridWidth = 10
-// gridHeight = 1
+// gridHeight = 10
 // gridSize = 50
 // decorSize = 24
 
@@ -35,10 +35,7 @@ let walls
 
 let simulationDisplayBuffer
 let materialDisplayBuffer
-let sprinklerDisplayBuffer
 let decorBuffer
-
-let decorationBuffer
 
 let sprinklers = []
 

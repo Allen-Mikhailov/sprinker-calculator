@@ -12,22 +12,23 @@ function drawLines(ctx)
 
 function drawScreen(ctx, buffer)
 {
-    drawLines(ctx)
+    // drawLines(ctx)
 
     let i = 0;
     for (let y = 0; y < gridHeight; y++)
     {  
-        const ay = lineWidth + y*gridSize + (y)*lineWidth
+        const ay = y*gridSize + (y)*lineWidth
         for (let x = 0; x < gridWidth; x++)
         {
-            const ax = lineWidth + x*gridSize + (x)*lineWidth
+            const ax = x*gridSize + (x)*lineWidth
 
             // Main Grid
             ctx.fillStyle = `rgb(${buffer[i+0]},${buffer[i+1]},${buffer[i+2]})`
-            ctx.fillRect(ax, ay, gridSize, gridSize)
+            ctx.fillRect(ax, ay, gridSize+lineWidth, gridSize+lineWidth)
             i += 3
         }
     }
+    drawLines(ctx)
 }
 
 function drawDecor(ctx, buffer)

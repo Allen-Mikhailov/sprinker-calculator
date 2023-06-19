@@ -11,7 +11,10 @@ const visibleMapSelector = document.getElementById("visible-map-selector")
 // Simulation Stuff
 const simulationTool = document.getElementById("simulation-tool")
 const simulationRunButton = document.getElementById("simulation-run-button")
-const simulationToggleSprinklersButton = document.getElementById("simulation-toggle-sprinklers-button")
+
+
+const toggleSprinklersButton = document.getElementById("toggle-sprinklers-button")
+const toggleLinesButton = document.getElementById("toggle-lines-button")
 
 // Material Stuff
 const materialMap = document.getElementById("material-map")
@@ -72,17 +75,25 @@ function updateSize()
 
     gridConversion = SCREEN_WIDTH/gridWidth
 
+    updateSimDisplay(simulationBuffer)
+    updateMaterialDisplay()
+    updateBrushDisplay()
+    updateSprinklerDisplay()
+}
+
+function updateGridSize()
+{
+
     colorBufferSize = gridWidth * gridHeight * 3
     simulationDisplayBuffer = new Uint8Array(colorBufferSize)
     materialDisplayBuffer = new Uint8Array(colorBufferSize)
-    sprinklerDisplayBuffer = new Uint8Array(colorBufferSize)
 
     decorBuffer = new Uint8Array(gridHeight*gridWidth*4)
 
     materialBuffer = new Uint8Array(gridWidth * gridHeight)
     simulationBuffer = new Float64Array(gridWidth * gridHeight)
 
-    // Draw Test
+    // // Draw Test
     const c = hypot(gridWidth, gridHeight)
     let i = 0
     for (let y = 0; y < gridHeight; y++)
@@ -94,7 +105,7 @@ function updateSize()
         }
     }
 
-    sprinklerDisplayBuffer.fill(255)
+    updateSize()
 }
 function updateSimDisplay(buffer)
 {
@@ -268,13 +279,15 @@ simulationRunButton.onclick = () => {
 
 materialToolSize.onchange = () => {brushSize = parseInt(materialToolSize.value);}
 visibleMapSelector.onchange = () => {map = visibleMapSelector.value; mapUpdate();}
-simulationToggleSprinklersButton.onclick = () => {
+toggleSprinklersButton.onclick = () => {
     simToggleSprinklers = !simToggleSprinklers
     sprinklerDisplay.style.display = simToggleSprinklers ? "inline-block":"none"
 }
 
-updateSize()
-updateMaterialDisplay()
-updateBrushDisplay()
-updateSimDisplay(simulationBuffer)
+toggleLinesButton.onclick = () => {
+    lineWidth = lineWidth == 1 ? 0:1
+    updateSize()
+}
+
+updateGridSize()
 mapUpdate()
