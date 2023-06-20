@@ -5,6 +5,11 @@ let gridSize = 10
 let decorSize = 4
 let lineWidth = 1
 
+// Topography
+let blurTicks = 1
+let blurStrength = .4
+let heightWeight = 2
+
 // Debug Settings
 // gridWidth = 10
 // gridHeight = 10
@@ -30,11 +35,13 @@ let brushSize = 1
 
 let simulationBuffer
 let materialBuffer
+let topographyBuffer
 
 let walls
 
 let simulationDisplayBuffer
 let materialDisplayBuffer
+let topographyDisplayBuffer
 let decorBuffer
 
 let sprinklers = []

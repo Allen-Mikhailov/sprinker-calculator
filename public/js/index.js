@@ -92,6 +92,7 @@ function updateGridSize()
 
     materialBuffer = new Uint8Array(gridWidth * gridHeight)
     simulationBuffer = new Float64Array(gridWidth * gridHeight)
+    topographyBuffer = new Float64Array(gridWidth * gridHeight)
 
     // // Draw Test
     const c = hypot(gridWidth, gridHeight)

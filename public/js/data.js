@@ -14,3 +14,17 @@ const materialColors = [
     [120, 120, 120], // 1: concrete
     [30, 30, 30],    // 2: Wall
 ]
+
+let blurPattern = [
+    // Top, Left, Down, Right
+    1,   0, 
+    -1,  0,
+    0,   1,
+    0,  -1,
+
+    // Corners
+    1,   1,
+    -1,  1,
+    1,  -1,
+    -1, -1,
+]

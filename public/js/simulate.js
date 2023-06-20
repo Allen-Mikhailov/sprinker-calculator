@@ -31,6 +31,43 @@ function sprinklerCoverPoint(x, y, sprinkler)
     return true
 }
 
+function validPoint(x, y)
+{
+    return x > -1 && x < gridWidth && y > -1 && y < gridHeight
+}
+
+function getValidblurPoints(x, y)
+{
+    if (x > 0 && x < gridWidth-1 && y > 0 && y < gridHeight-1)
+        return blurPattern
+
+    const validPoints = []
+    for (let i = 0; i < blurPattern.length; i+=2)
+    {
+        if (validPoint(blurPattern[i]+x, blurPattern[i+1]+y))
+        {
+            validPoints.push(blurPattern[i]+x)
+            validPoints.push(blurPattern[i+1]+y)
+        }   
+    }
+
+    return validPoints
+}
+
+function blur(buffer, writeBuffer)
+{
+    for (let y = 0; y < gridHeight; y++)
+    {
+        for (let x = 0; x < gridWidth; x++)
+        {
+            // Gathering Valid Points
+            const validPoints = getValidblurPoints(x, y)
+            const weights = []
+            const
+        }
+    }
+}
+
 function simulateSprinklers(sprinklers, buffer)
 {
     buffer.fill(0)
@@ -64,6 +101,22 @@ function simulateSprinklers(sprinklers, buffer)
 
             buffer[i++] = value;
         }
+    }
+
+    let a = buffer
+    let b = new Float64Array(gridWidth*gridHeight)
+    for (let j = 0; j < blurTicks-1; j++)
+    {
+        blur(a, b)
+        // Swap
+        const temp = a
+        a = b
+        b = temp
+    }
+
+    if (blurTicks > 0 )
+    {
+        blur(a, buffer)
     }
 }
 
