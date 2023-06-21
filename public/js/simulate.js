@@ -56,6 +56,7 @@ function getValidblurPoints(x, y)
 
 function blur(buffer, writeBuffer)
 {
+    writeBuffer.fill(0)
     for (let y = 0; y < gridHeight; y++)
     {
         for (let x = 0; x < gridWidth; x++)
@@ -63,7 +64,18 @@ function blur(buffer, writeBuffer)
             // Gathering Valid Points
             const validPoints = getValidblurPoints(x, y)
             const weights = []
-            const
+            let totalWeight = 0
+            const current = buffer[y*gridWidth + x]
+            writeBuffer[y*gridWidth + x] = current * (1-blurStrength)
+
+            const currentHeight = topographyBuffer[y*gridWidth+x]
+
+            const left = current*blurStrength
+
+            for (let i = 0; i < validPoints.length; i+=2)
+            {
+                Math.pow(topographyBuffer[]dddddddddddddddd)
+            }
         }
     }
 }
