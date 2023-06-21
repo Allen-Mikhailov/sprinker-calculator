@@ -17,6 +17,7 @@ const materialColors = [
 
 let blurPattern = [
     // Top, Left, Down, Right
+    0,   0,
     1,   0, 
     -1,  0,
     0,   1,

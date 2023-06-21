@@ -1,6 +1,7 @@
 // Canvases
 const simulationDisplay = document.getElementById("simulation-display")
 const materialDisplay = document.getElementById("material-display")
+const topographyDisplay = document.getElementById("topography-display")
 
 const brushDisplay = document.getElementById("brush-display")
 const sprinklerDisplay = document.getElementById("sprinkler-display")
@@ -11,6 +12,7 @@ const visibleMapSelector = document.getElementById("visible-map-selector")
 // Simulation Stuff
 const simulationTool = document.getElementById("simulation-tool")
 const simulationRunButton = document.getElementById("simulation-run-button")
+const simulationBlurButton = document.getElementById("simulation-blur-button")
 
 
 const toggleSprinklersButton = document.getElementById("toggle-sprinklers-button")
@@ -20,6 +22,7 @@ const toggleLinesButton = document.getElementById("toggle-lines-button")
 const materialMap = document.getElementById("material-map")
 const materialToolSize = document.getElementById("material-tool-size")
 const materialToolSelect = document.getElementById("material-tool")
+const materialToolAutogen = document.getElementById("material-tool-autogen")
 
 // Sprinkler
 const sprinklerTool = document.getElementById("sprinkler-tool")
@@ -30,12 +33,14 @@ const canvases = [
     materialDisplay,
     brushDisplay,
     sprinklerDisplay,
+    topographyDisplay,
     canvasSpacer
 ]
 
 const guiKeys = {
     "simulation-display": simulationDisplay,
     "material-display": materialDisplay,
+    "topography-display": topographyDisplay,
 
     // "brush-display": brushDisplay,
 
@@ -57,6 +62,9 @@ const guiActives = {
     "sprinklers": {
         "material-display": true,
         "sprinkler-tool": true
+    },
+    "topography": {
+        "topography-display": true
     }
 }
 
@@ -102,6 +110,7 @@ function updateGridSize()
         for (let x = 0; x < gridWidth; x++)
         {
             const disAlpha = hypot(x, y)/c
+            topographyBuffer[i] = disAlpha*5
             simulationBuffer[i++] = disAlpha
         }
     }
@@ -273,8 +282,38 @@ document.body.onclick = () => {
     }
 }
 
+materialToolAutogen.onclick = () => {
+    let i = 0;
+
+    noise.seed(Math.random());
+
+    for (let y = 0; y < gridHeight; y++)
+    {
+        for (let x = 0; x < gridWidth; x++)
+        {
+            const value = noise.simplex2(x / 25, y / 25);
+            if (value < .5)
+                materialBuffer[i++] = 0
+            else if (value < .6)
+                materialBuffer[i++] = 1
+            else
+                materialBuffer[i++] = 2
+        }
+    }
+    updateMaterialDisplay()
+}
+
 simulationRunButton.onclick = () => {
+
     simulateSprinklers(sprinklers, simulationBuffer)
+    updateSimDisplay(simulationBuffer)
+}
+
+simulationBlurButton.onclick = () => {
+    for (let i = 0; i < 4; i++)
+    {
+        blur(new Float64Array(simulationBuffer), simulationBuffer)
+    }
     updateSimDisplay(simulationBuffer)
 }
 

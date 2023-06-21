@@ -74,7 +74,12 @@ function squareIntersect(a, b, c, x, y)
     )
 }
 
+function getIndex(x,y)
+{
+    return y*gridWidth+x
+}
+
 function getPixelPoint(x, y)
 {
-    return (y*gridWidth+x)*3
+    return getIndex(x,y)*3
 }

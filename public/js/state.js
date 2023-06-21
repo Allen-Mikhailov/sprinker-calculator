@@ -6,9 +6,8 @@ let decorSize = 4
 let lineWidth = 1
 
 // Topography
-let blurTicks = 1
-let blurStrength = .4
-let heightWeight = 2
+let blurTicks = 5
+let heightWeight = 1000
 
 // Debug Settings
 // gridWidth = 10

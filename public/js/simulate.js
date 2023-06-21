@@ -38,18 +38,20 @@ function validPoint(x, y)
 
 function getValidblurPoints(x, y)
 {
-    if (x > 0 && x < gridWidth-1 && y > 0 && y < gridHeight-1)
-        return blurPattern
+    const within = x > 0 && x < gridWidth-1 && y > 0 && y < gridHeight-1
 
     const validPoints = []
     for (let i = 0; i < blurPattern.length; i+=2)
     {
-        if (validPoint(blurPattern[i]+x, blurPattern[i+1]+y))
+        if (materialBuffer[getIndex(blurPattern[i]+x, blurPattern[i+1]+y)] == 0  
+            &&  (within||validPoint(blurPattern[i]+x, blurPattern[i+1]+y)))
         {
             validPoints.push(blurPattern[i]+x)
             validPoints.push(blurPattern[i+1]+y)
         }   
     }
+
+    // console.log(validPoints)
 
     return validPoints
 }
@@ -66,26 +68,21 @@ function blur(buffer, writeBuffer)
             const weights = []
             let totalWeight = 0
             const current = buffer[y*gridWidth + x]
-            writeBuffer[y*gridWidth + x] = current * (1-blurStrength)
 
+            // Calculating the weights
             const currentHeight = topographyBuffer[y*gridWidth+x]
-
-            const left = current*blurStrength
-
             for (let i = 0; i < validPoints.length; i+=2)
             {
-                const height = topographyBuffer[(y+validPoints[i+1])*gridWidth + x+validPoints[i]]
-                const weight = Math.pow(height-currentHeight, 2)
+                const height = topographyBuffer[validPoints[i+1]*gridWidth + validPoints[i]]
+                const weight = Math.pow(heightWeight, currentHeight-height)
                 weights.push(weight)
                 totalWeight += weight
             }
 
+            // Applying the blur
             for (let i = 0; i < validPoints.length; i+=2)
             {
-                const height = topographyBuffer[(y+validPoints[i+1])*gridWidth + x+validPoints[i]]
-                const weight = Math.pow(height-currentHeight, 2)
-                weights.push(weight)
-                totalWeight += weight
+                writeBuffer[validPoints[i+1]*gridWidth + validPoints[i]] += weights[i/2]/totalWeight*current
             }
         }
     }
@@ -126,11 +123,12 @@ function simulateSprinklers(sprinklers, buffer)
         }
     }
 
-    let a = buffer
+    let a = new Float64Array(buffer)
     let b = new Float64Array(gridWidth*gridHeight)
     for (let j = 0; j < blurTicks-1; j++)
     {
         blur(a, b)
+
         // Swap
         const temp = a
         a = b
