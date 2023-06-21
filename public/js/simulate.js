@@ -74,7 +74,18 @@ function blur(buffer, writeBuffer)
 
             for (let i = 0; i < validPoints.length; i+=2)
             {
-                Math.pow(topographyBuffer[]dddddddddddddddd)
+                const height = topographyBuffer[(y+validPoints[i+1])*gridWidth + x+validPoints[i]]
+                const weight = Math.pow(height-currentHeight, 2)
+                weights.push(weight)
+                totalWeight += weight
+            }
+
+            for (let i = 0; i < validPoints.length; i+=2)
+            {
+                const height = topographyBuffer[(y+validPoints[i+1])*gridWidth + x+validPoints[i]]
+                const weight = Math.pow(height-currentHeight, 2)
+                weights.push(weight)
+                totalWeight += weight
             }
         }
     }
