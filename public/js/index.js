@@ -28,6 +28,10 @@ const materialToolAutogen = document.getElementById("material-tool-autogen")
 const sprinklerTool = document.getElementById("sprinkler-tool")
 const sprinklerToolSelect = document.getElementById("sprinkler-tool-select")
 
+// Topography 
+const topographyTool = document.getElementById("topography-tool")
+const topographyToolAutogen = document.getElementById("topography-tool-autogen")
+
 const canvases = [
     simulationDisplay,
     materialDisplay,
@@ -46,7 +50,8 @@ const guiKeys = {
 
     "simulation-tool": simulationTool,
     "material-map": materialMap,
-    "sprinkler-tool": sprinklerTool
+    "sprinkler-tool": sprinklerTool,
+    "topography-tool": topographyTool,
 }
 
 const guiActives = {
@@ -61,10 +66,11 @@ const guiActives = {
     },
     "sprinklers": {
         "material-display": true,
-        "sprinkler-tool": true
+        "sprinkler-tool": true,
     },
     "topography": {
-        "topography-display": true
+        "topography-display": true,
+        "topography-tool": true,
     }
 }
 
@@ -85,6 +91,7 @@ function updateSize()
 
     updateSimDisplay(simulationBuffer)
     updateMaterialDisplay()
+    updateTopographyDisplay()
     updateBrushDisplay()
     updateSprinklerDisplay()
 }
@@ -95,6 +102,7 @@ function updateGridSize()
     colorBufferSize = gridWidth * gridHeight * 3
     simulationDisplayBuffer = new Uint8Array(colorBufferSize)
     materialDisplayBuffer = new Uint8Array(colorBufferSize)
+    topographyDisplayBuffer = new Uint8Array(colorBufferSize)
 
     decorBuffer = new Uint8Array(gridHeight*gridWidth*4)
 
@@ -173,6 +181,33 @@ function updateMaterialDisplay()
     walls = newWalls
     const ctx = materialDisplay.getContext("2d")
     drawScreen(ctx, materialDisplayBuffer)
+}
+
+function updateTopographyDisplay()
+{
+    let i = 0;
+    let j = 0;
+
+    let min = 0
+    for (let k = 0; k < gridHeight*gridWidth; k++)
+        min = max(min, topographyBuffer[k])
+
+    console.log(min)
+
+    for (let y = 0; y < gridHeight; y++)
+    {
+        for (let x = 0; x < gridWidth; x++)
+        {
+            const height = topographyBuffer[i++]/min * 255;
+
+            topographyDisplayBuffer[j++] = height
+            topographyDisplayBuffer[j++] = height
+            topographyDisplayBuffer[j++] = height
+        }
+    }
+
+    const ctx = topographyDisplay.getContext("2d")
+    drawScreen(ctx, topographyDisplayBuffer)
 }
 
 function updateBrushDisplay()
@@ -301,6 +336,27 @@ materialToolAutogen.onclick = () => {
         }
     }
     updateMaterialDisplay()
+}
+
+topographyToolAutogen.onclick = () => {
+    let i = 0;
+
+    noise.seed(Math.random());
+
+    for (let y = 0; y < gridHeight; y++)
+    {
+        for (let x = 0; x < gridWidth; x++)
+        {
+            const value = 1+noise.simplex2(x / 25, y / 25);
+            if (value < .5)
+                topographyBuffer[i++] = value
+            else if (value < .6)
+                topographyBuffer[i++] = value
+            else
+                topographyBuffer[i++] = value
+        }
+    }
+    updateTopographyDisplay()
 }
 
 simulationRunButton.onclick = () => {
