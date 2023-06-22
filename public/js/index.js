@@ -13,7 +13,7 @@ const visibleMapSelector = document.getElementById("visible-map-selector")
 const simulationTool = document.getElementById("simulation-tool")
 const simulationRunButton = document.getElementById("simulation-run-button")
 const simulationBlurButton = document.getElementById("simulation-blur-button")
-
+const simulationSolveButton = document.getElementById("simulation-solve-button")
 
 const toggleSprinklersButton = document.getElementById("toggle-sprinklers-button")
 const toggleLinesButton = document.getElementById("toggle-lines-button")
@@ -372,6 +372,109 @@ simulationBlurButton.onclick = () => {
     }
     updateSimDisplay(simulationBuffer)
 }
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+function checkAngle(angle)
+{
+    angle = posAngle(angle)
+
+    if (angle > Math.PI)
+        return -Math.PI*2+angle
+    return angle
+}
+
+async function solve()
+{
+    const generations = 200
+    const genSize = 4
+
+    const angleChange = .1
+    const positionChange = .3
+
+    let generation = []
+
+    // function 
+
+    // Creating Initial Generation
+    for (let i = 0; i < genSize; i++)
+    {
+        const gen = []
+        sprinklers.map((sprinkler) => {
+            gen.push({
+                "x":Math.random()*gridWidth,
+                "y":Math.random()*gridHeight,
+                "type": sprinkler.type,
+                "angle": Math.random()*2*Math.PI
+            })
+        })
+
+        generation.push(gen)
+    }
+
+    const buffer = new Float64Array(gridWidth*gridHeight)
+    for (let i = 0; i < generations; i++)
+    {
+        const scores = []
+        for (let j = 0; j < genSize; j++)
+        {
+            simulateSprinklers(generation[j], buffer)
+            scores.push(evaluateSim(buffer))
+        }
+
+        duoSort(scores, generation)
+        scores.reverse()
+        generation.reverse()
+        // console.log(scores)
+
+        const newGeneration = []
+        for (let j = 0; j < genSize/2; j++)
+        {
+            // newGeneration.push(generation[j])
+            let newSet = []
+            for (let k = 0; k < generation[j].length; k++)
+            {
+                newSet.push({
+                    "x": generation[j][k].x + random()*positionChange,
+                    "y": generation[j][k].y + random()*positionChange,
+                    "angle": checkAngle(generation[j][k].angle + random()*angleChange),
+                    "type": generation[j][k].type
+                })
+            }
+            newGeneration.push(newSet)
+
+            newSet = []
+            for (let k = 0; k < generation[j].length; k++)
+            {
+                newSet.push({
+                    "x": generation[j][k].x + random()*positionChange,
+                    "y": generation[j][k].y + random()*positionChange,
+                    "angle": checkAngle(generation[j][k].angle + random()*angleChange),
+                    "type": generation[j][k].type
+                })
+            }
+            newGeneration.push(newSet)
+        }
+
+        await sleep(1)
+
+        sprinklers = generation[0]
+
+        console.log(sprinklers)
+
+        updateSprinklerDisplay()
+        simulateSprinklers(sprinklers, simulationBuffer)
+        updateSimDisplay(simulationBuffer)
+
+        generation = newGeneration
+
+        console.log(""+(i+1)/generations*100+"% " + scores[0])
+    }
+}
+
+simulationSolveButton.onclick = solve
 
 materialToolSize.onchange = () => {brushSize = parseInt(materialToolSize.value);}
 visibleMapSelector.onchange = () => {map = visibleMapSelector.value; mapUpdate();}
