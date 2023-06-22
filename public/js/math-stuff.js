@@ -83,3 +83,37 @@ function getPixelPoint(x, y)
 {
     return getIndex(x,y)*3
 }
+
+function duoSort(a0, a1)
+{
+    // Dumb Bubble sort
+    while (true) 
+    {
+        let changed = false
+        for (let i = 0; i < a0.length-1; i++)
+        {
+            if (a0[i] > a0[i+1])
+            {
+                changed = true
+
+                const t = a0[i]
+                a0[i] = a0[i+1]
+                a0[i+1] = t
+
+                const t2 = a1[i]
+                a1[i] = a1[i+1]
+                a1[i+1] = t2
+            }
+        }
+
+        console.log("Sort Run")
+
+        if (!changed)
+            return
+    }
+}
+
+function random()
+{
+    return (Math.random()-.5)*2
+}

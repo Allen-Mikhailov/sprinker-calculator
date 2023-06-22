@@ -6,7 +6,7 @@ let decorSize = 4
 let lineWidth = 1
 
 // Topography
-let blurTicks = 5
+let blurTicks = 0
 let heightWeight = 1000
 
 // Debug Settings
