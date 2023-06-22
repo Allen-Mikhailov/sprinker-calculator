@@ -106,8 +106,6 @@ function duoSort(a0, a1)
             }
         }
 
-        console.log("Sort Run")
-
         if (!changed)
             return
     }

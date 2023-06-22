@@ -389,7 +389,7 @@ function checkAngle(angle)
 async function solve()
 {
     const generations = 200
-    const genSize = 4
+    const genSize = 10
 
     const angleChange = .1
     const positionChange = .3
@@ -461,8 +461,6 @@ async function solve()
         await sleep(1)
 
         sprinklers = generation[0]
-
-        console.log(sprinklers)
 
         updateSprinklerDisplay()
         simulateSprinklers(sprinklers, simulationBuffer)
