@@ -22,3 +22,10 @@ body {
     top: 0%;
     color: white;
 }
+
+#hover-data {
+    color: white;
+    position: absolute;
+    right: 0%;
+    bottom: 0%;
+}

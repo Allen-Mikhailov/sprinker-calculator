@@ -36,7 +36,9 @@ let simulationBuffer
 let materialBuffer
 let topographyBuffer
 
-let walls
+let walls = [] // temp
+let horizontalWalls
+let verticalWalls
 
 let simulationDisplayBuffer
 let materialDisplayBuffer

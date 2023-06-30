@@ -10,6 +10,23 @@ function drawLines(ctx)
     }
 }
 
+function drawWalls(ctx)
+{
+    const d = (lineWidth+gridSize)
+
+    // Vertical Walls
+    console.log(verticalWalls)
+    for (let i = 0; i < verticalWalls.length; i+=3)
+    {
+        const startX = verticalWalls[i]
+        const startY = verticalWalls[i+1]
+        const endY   = verticalWalls[i+2]
+
+        ctx.fillStyle = "red"
+        ctx.fillRect(startX*d, 0, startY*d, (endY-startY+1)*d)
+    }
+}
+
 function drawScreen(ctx, buffer)
 {
     // drawLines(ctx)

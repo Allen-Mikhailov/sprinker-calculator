@@ -32,6 +32,8 @@ const sprinklerToolSelect = document.getElementById("sprinkler-tool-select")
 const topographyTool = document.getElementById("topography-tool")
 const topographyToolAutogen = document.getElementById("topography-tool-autogen")
 
+const hoverCords = document.getElementById("hover-cords")
+
 const canvases = [
     simulationDisplay,
     materialDisplay,
@@ -159,7 +161,8 @@ function updateMaterialDisplay()
 {
     let i = 0;
     let j = 0;
-    const newWalls = []
+    const newHWalls = new Uint8Array( ( gridHeight + 1 ) * ( gridWidth ) )
+    const newVWalls = new Uint8Array( ( gridHeight ) * ( gridWidth + 1 ) )
     for (let y = 0; y < gridHeight; y++)
     {
         for (let x = 0; x < gridWidth; x++)
@@ -172,15 +175,74 @@ function updateMaterialDisplay()
 
             if (mat == 2)
             {
-                // Is Wall
-                newWalls.push(x)
-                newWalls.push(y)
+                const wallVI = y*(gridWidth+1)+x
+                const wallHI = y*(gridWidth)+x
+
+                // Checking Left Wall
+                if (x > 0 && materialBuffer[i-1] == 2 && newVWalls[wallVI-1] == 0)
+                    newVWalls[wallVI-1] = 1
+
+                // Checking Right Wall
+                if (x < gridWidth-1 && materialBuffer[i+1] == 2 && newVWalls[wallVI+1] == 0)
+                    newVWalls[wallVI+1] = 1
+
+                // Checking Top Wall
+                if (y > 0 && materialBuffer[i-gridWidth] == 2 && newHWalls[wallHI-gridWidth-1] == 0)
+                    newHWalls[wallHI-gridWidth-1] = 1
+
+                // Checking Right Wall
+                if (y < gridHeight-1 && materialBuffer[i+gridWidth] == 2 && newHWalls[wallHI+gridWidth+1] == 0)
+                    newHWalls[wallHI+gridWidth+1] = 1
             }
         }
     }
-    walls = newWalls
+
+    const combinedHWalls = []
+    for (let y = 0; y < gridHeight+1; y++)
+    {
+        const yc = y*(gridWidth+1)
+        let x = 0;
+        while (x < gridWidth)
+        {
+            if (newHWalls[yc+x] == 1)
+            {
+                let sx = x
+                while (x+1 < gridWidth && newHWalls[yc+x+1] == 1)
+                    x++;
+                combinedHWalls.push(sx)
+                combinedHWalls.push(x)
+                combinedHWalls.push(y)
+            }
+            x++;
+        }
+    }
+
+    const combinedVWalls = []
+    for (let x = 0; x < gridWidth+1; x++)
+    {
+        let y = 0;
+        while (y < gridHeight)
+        {
+            if (newVWalls[y*gridHeight+x] == 1)
+            {
+                let sy = y
+                while (y+1 < gridHeight && newVWalls[(y+1)*gridHeight+x] == 1)
+                    y++;
+                combinedVWalls.push(x)
+                combinedVWalls.push(sy)
+                combinedVWalls.push(y)
+            }
+            y++;
+        }
+    }
+
+
+    horizontalWalls= combinedHWalls
+    verticalWalls = combinedVWalls
+    
     const ctx = materialDisplay.getContext("2d")
     drawScreen(ctx, materialDisplayBuffer)
+    drawWalls(ctx)
 }
 
 function updateTopographyDisplay()
@@ -191,8 +253,6 @@ function updateTopographyDisplay()
     let min = 0
     for (let k = 0; k < gridHeight*gridWidth; k++)
         min = max(min, topographyBuffer[k])
-
-    console.log(min)
 
     for (let y = 0; y < gridHeight; y++)
     {
@@ -278,6 +338,7 @@ document.body.onmousemove = (e) => {
     if (mgX != gx || mgY != gy)
     {
         mgX = gx; mgY = gy;
+        hoverCords.innerHTML = `${mgX}, ${mgY}`
         updateBrushDisplay()
     }
 
