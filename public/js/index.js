@@ -233,6 +233,11 @@ function updateMaterialDisplay()
                 combinedVWalls.push(x)
                 combinedVWalls.push(sy)
                 combinedVWalls.push(y)
+
+                // const [a,b,c] = convertToABC(x, y, -Math.PI)
+                // combinedVWalls.push(a)
+                // combinedVWalls.push(b)
+                // combinedVWalls.push(c)
             }
             y++;
         }

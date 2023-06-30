@@ -13,19 +13,53 @@ function sprinklerCoverPoint(x, y, sprinkler)
     if (distance > sprinklerDistance)
         return false
 
-    const len = walls.length/2
-    let i = 0
-    while (i<len)
+    // const len = walls.length/2
+    // let i = 0
+    // while (i<len)
+    // {
+    //     if (distance > Math.hypot((walls[i*2]+.5)-sprinkler.x, (walls[i*2+1]+.5)-sprinkler.y))
+    //     {
+    //         const angleT = atan2(walls[i*2+1]+.5-sprinkler.y, (walls[i*2]+.5)-sprinkler.x)
+    //         if (abs(angleDif(angleT, angleTo)) < Math.PI/2 && squareIntersect(a,b,c, walls[i*2], walls[i*2+1]))
+    //         {
+    //             return false
+    //         }
+    //     }
+    //     i++;
+    // }
+
+    for (let i = 0; i < verticalWalls.length; i+=3)
     {
-        if (distance > Math.hypot((walls[i*2]+.5)-sprinkler.x, (walls[i*2+1]+.5)-sprinkler.y))
-        {
-            const angleT = atan2(walls[i*2+1]+.5-sprinkler.y, (walls[i*2]+.5)-sprinkler.x)
-            if (abs(angleDif(angleT, angleTo)) < Math.PI/2 && squareIntersect(a,b,c, walls[i*2], walls[i*2+1]))
-            {
-                return false
-            }
-        }
-        i++;
+        const wx = verticalWalls[i]
+        const wy = verticalWalls[i+1]
+        const wsy = verticalWalls[i+2]+1
+
+        const reachTime = (wx - sprinkler.x)/cos(angleTo)
+
+        if (isNaN(reachTime) || reachTime < 0 || reachTime > distance)
+            continue
+
+        const reachY = reachTime*sin(angleTo)+sprinkler.y
+        if (reachY >= wy && reachY <= wsy)
+            return false
+
+    }
+
+    for (let i = 0; i < horizontalWalls.length; i+=3)
+    {
+        const wx = horizontalWalls[i]
+        const wsx = horizontalWalls[i+1]
+        const wy = horizontalWalls[i+2]+1
+
+        const reachTime = (wy - sprinkler.y)/sin(angleTo)
+
+        if (isNaN(reachTime) || reachTime < 0 || reachTime > distance)
+            continue
+
+        const reachX = reachTime*cos(angleTo)+sprinkler.x
+        if (reachX >= wx && reachX <= wsx)
+            return false
+
     }
     
     return true
