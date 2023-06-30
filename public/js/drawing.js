@@ -15,7 +15,7 @@ function drawWalls(ctx)
     const d = (lineWidth+gridSize)
 
     // Vertical Walls
-    console.log(verticalWalls)
+    // console.log(verticalWalls)
     for (let i = 0; i < verticalWalls.length; i+=3)
     {
         const startX = verticalWalls[i]
@@ -23,7 +23,17 @@ function drawWalls(ctx)
         const endY   = verticalWalls[i+2]
 
         ctx.fillStyle = "red"
-        ctx.fillRect(startX*d, 0, startY*d, (endY-startY+1)*d)
+        ctx.fillRect(startX*d, startY*d, 5, (endY-startY+1)*d)
+    }
+
+    for (let i = 0; i < horizontalWalls.length; i+=3)
+    {
+        const startX = horizontalWalls[i]
+        const endX = horizontalWalls[i+1]
+        const startY   = horizontalWalls[i+2]
+
+        ctx.fillStyle = "red"
+        ctx.fillRect(startX*d, startY*d, (endX-startX+1)*d, 5)
     }
 }
 

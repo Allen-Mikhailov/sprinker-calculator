@@ -167,7 +167,7 @@ function updateMaterialDisplay()
     {
         for (let x = 0; x < gridWidth; x++)
         {
-            const mat = materialBuffer[i++];
+            const mat = materialBuffer[i];
 
             materialDisplayBuffer[j++] = materialColors[mat][0]
             materialDisplayBuffer[j++] = materialColors[mat][1]
@@ -179,28 +179,29 @@ function updateMaterialDisplay()
                 const wallHI = y*(gridWidth)+x
 
                 // Checking Left Wall
-                if (x > 0 && materialBuffer[i-1] == 2 && newVWalls[wallVI-1] == 0)
-                    newVWalls[wallVI-1] = 1
+                if (x > 0 && materialBuffer[i-1] != 2  && newVWalls[wallVI] == 0)
+                    newVWalls[wallVI] = 1
 
                 // Checking Right Wall
-                if (x < gridWidth-1 && materialBuffer[i+1] == 2 && newVWalls[wallVI+1] == 0)
+                if (x < gridWidth-1 && materialBuffer[i+1] != 2  && newVWalls[wallVI+1] == 0)
                     newVWalls[wallVI+1] = 1
 
                 // Checking Top Wall
-                if (y > 0 && materialBuffer[i-gridWidth] == 2 && newHWalls[wallHI-gridWidth-1] == 0)
-                    newHWalls[wallHI-gridWidth-1] = 1
+                if (y > 0 && materialBuffer[i-gridWidth] != 2 && newHWalls[wallHI] == 0)
+                    newHWalls[wallHI] = 1
 
-                // Checking Right Wall
-                if (y < gridHeight-1 && materialBuffer[i+gridWidth] == 2 && newHWalls[wallHI+gridWidth+1] == 0)
-                    newHWalls[wallHI+gridWidth+1] = 1
+                // Checking Bottom Wall
+                if (y < gridHeight-1 && materialBuffer[i+gridWidth] != 2 && newHWalls[wallHI+gridWidth] == 0)
+                    newHWalls[wallHI+gridWidth] = 1
             }
+            i++;
         }
     }
 
     const combinedHWalls = []
     for (let y = 0; y < gridHeight+1; y++)
     {
-        const yc = y*(gridWidth+1)
+        const yc = y*gridWidth
         let x = 0;
         while (x < gridWidth)
         {
@@ -209,6 +210,7 @@ function updateMaterialDisplay()
                 let sx = x
                 while (x+1 < gridWidth && newHWalls[yc+x+1] == 1)
                     x++;
+                // console.log(x, y)
                 combinedHWalls.push(sx)
                 combinedHWalls.push(x)
                 combinedHWalls.push(y)
@@ -223,10 +225,10 @@ function updateMaterialDisplay()
         let y = 0;
         while (y < gridHeight)
         {
-            if (newVWalls[y*gridHeight+x] == 1)
+            if (newVWalls[y*(gridWidth+1)+x] == 1)
             {
                 let sy = y
-                while (y+1 < gridHeight && newVWalls[(y+1)*gridHeight+x] == 1)
+                while (y+1 < gridHeight && newVWalls[(y+1)*(gridWidth+1)+x] == 1)
                     y++;
                 combinedVWalls.push(x)
                 combinedVWalls.push(sy)
@@ -237,8 +239,8 @@ function updateMaterialDisplay()
     }
 
 
-    horizontalWalls= combinedHWalls
-    verticalWalls = combinedVWalls
+    horizontalWalls = combinedHWalls
+    verticalWalls   = combinedVWalls
     
     const ctx = materialDisplay.getContext("2d")
     drawScreen(ctx, materialDisplayBuffer)
